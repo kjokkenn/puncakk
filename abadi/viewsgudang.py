@@ -683,7 +683,7 @@ def update_produk_gudang(request, id):
         return redirect("readprodukgudang")
 
 def read_saldoawal(request) :
-    dataproduk = models.SaldoAwalBahanBaku.objects.all().order_by("-Tanggal")
+    dataproduk = models.SaldoAwalBahanBaku.objects.filter(IDLokasi__NamaLokasi = "Gudang").order_by("-Tanggal")
     for i in dataproduk:
         i.Tanggal = i.Tanggal.strftime("%d-%m-%Y")
 
@@ -692,7 +692,7 @@ def read_saldoawal(request) :
     )
 
 def read_saldoawal2(request) :
-    dataartikel = models.SaldoAwalArtikel.objects.all().order_by("-Tanggal")
+    dataartikel = models.SaldoAwalArtikel.objects.filter(IDLokasi__NamaLokasi = "Gudang").order_by("-Tanggal")
     for i in dataartikel:
         i.Tanggal = i.Tanggal.strftime("%d-%m-%Y")
 
@@ -731,7 +731,7 @@ def addsaldo(request) :
         existing_entry = models.SaldoAwalBahanBaku.objects.filter(
             Tanggal__year=tanggal_formatted.year,
             IDBahanBaku__KodeProduk=kodeproduk,
-            IDLokasi=lokasi
+            IDLokasi__NamaLokasi=lokasi
         ).exists()
         if existing_entry:
             # Jika sudah ada, beri tanggapan atau lakukan tindakan yang sesuai
@@ -739,15 +739,19 @@ def addsaldo(request) :
             return redirect("read_saldoawalbahan")
         
         produkobj = models.Produk.objects.get(KodeProduk=kodeproduk)
-        lokasiobj = models.Lokasi.objects.get(IDLokasi=lokasi)
+        lokasiobj = models.Lokasi.objects.get(NamaLokasi=lokasi)
+        lokasi = str(lokasiobj.IDLokasi)
+
         pemusnahanobj = models.SaldoAwalBahanBaku(
-            Tanggal=tanggal, Jumlah=jumlah, IDBahanBaku=produkobj, IDLokasi=lokasiobj, Harga=harga)
+            Tanggal=tanggal, Jumlah=jumlah, IDBahanBaku=produkobj, IDLokasi_id=lokasi, Harga=harga)
+        
         models.transactionlog(
             user="Gudang",
             waktu=datetime.now(),
             jenis="Create",
             pesan=f"Kode Barang : {kodeproduk} Lokasi : {lokasi}",
         ).save()
+
         pemusnahanobj.save()
         return redirect("read_saldoawalbahan")
     
@@ -772,7 +776,7 @@ def addsaldo2(request) :
         existing_entry = models.SaldoAwalArtikel.objects.filter(
             Tanggal__year=tanggal_formatted.year,
             IDArtikel__KodeArtikel=artikel,
-            IDLokasi=lokasi
+            IDLokasi__NamaLokasi=lokasi
         ).exists()
         if existing_entry:
             # Jika sudah ada, beri tanggapan atau lakukan tindakan yang sesuai
@@ -780,9 +784,10 @@ def addsaldo2(request) :
             return redirect("read_saldoawalartikel")
         
         artikelobj = models.Artikel.objects.get(KodeArtikel=artikel)
-        lokasiobj = models.Lokasi.objects.get(IDLokasi=lokasi)
+        lokasiobj = models.Lokasi.objects.get(NamaLokasi=lokasi)
+        lokasi = str(lokasiobj.IDLokasi)
         pemusnahanobj = models.SaldoAwalArtikel(
-            Tanggal=tanggal, Jumlah=jumlah, IDArtikel=artikelobj, IDLokasi=lokasiobj
+            Tanggal=tanggal, Jumlah=jumlah, IDArtikel=artikelobj, IDLokasi_id=lokasi
         )
         models.transactionlog(
             user="Gudang",
@@ -882,12 +887,16 @@ def update_saldo(request,id) :
         harga = request.POST["harga"]
         tanggal = request.POST["tanggal"]
         produkobj = models.Produk.objects.get(KodeProduk=kodeproduk)
-        lokasiobj = models.Lokasi.objects.get(IDLokasi=lokasi)
+        lokasiobj = models.Lokasi.objects.get(NamaLokasi=lokasi)
+        lokasi = str(lokasiobj.IDLokasi)
+
+
+
 
         dataobj.Tanggal = tanggal
         dataobj.Jumlah = jumlah
         dataobj.IDBahanBaku = produkobj
-        dataobj.IDLokasi = lokasiobj
+        dataobj.IDLokasi_id = lokasi
         dataobj.Harga = harga
         models.transactionlog(
             user="Gudang",
@@ -918,12 +927,13 @@ def update_saldo2(request,id) :
         tanggal = request.POST["tanggal"]
 
         artikelobj = models.Artikel.objects.get(KodeArtikel=artikel)
-        lokasiobj = models.Lokasi.objects.get(IDLokasi=lokasi)
+        lokasiobj = models.Lokasi.objects.get(NamaLokasi=lokasi)
+        lokasi = str(lokasiobj.IDLokasi)
 
         dataobj.Tanggal = tanggal
         dataobj.Jumlah = jumlah
         dataobj.IDArtikel = artikelobj
-        dataobj.IDLokasi= lokasiobj
+        dataobj.IDLokasi_id = lokasi
         models.transactionlog(
             user="Gudang",
             waktu=datetime.now(),

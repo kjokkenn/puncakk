@@ -1,0 +1,73 @@
+{% load static %}
+
+<nav class="sidebar sidebar-offcanvas" id="sidebar">
+  <ul class="nav">
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'viewgudang' %}">
+        <i class="typcn typcn-device-desktop menu-icon"></i>
+        <span class="menu-title">Dashboard</span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'baranggudang' %}" aria-expanded="false" aria-controls="ui-basic">
+        <i class="typcn typcn-briefcase menu-icon"></i>
+        <span class="menu-title">Barang Masuk</span>
+
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="{%url 'barangkeluar'%}" aria-expanded="false" aria-controls="tables">
+        <i class="typcn typcn-th-small-outline menu-icon"></i>
+        <span class="menu-title">Barang Keluar</span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="{%url 'barangretur'%}" aria-expanded="false" aria-controls="tables">
+        <i class="typcn typcn-th-small-outline menu-icon"></i>
+        <span class="menu-title">Barang Retur</span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'detailbarang' %}" aria-expanded="false" aria-controls="charts">
+        <i class="typcn typcn-chart-pie-outline menu-icon"></i>
+        <span class="menu-title">KS BB</span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'rekapgudang' %}" aria-expanded="false" aria-controls="form-elements">
+        <i class="typcn typcn-film menu-icon"></i>
+        <span class="menu-title">Rekap Barang</span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'spkgudang' %}" aria-expanded="false" aria-controls="form-elements">
+        <i class="typcn typcn-film menu-icon"></i>
+        <span class="menu-title">SPK</span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'readprodukgudang' %}" aria-expanded="false" aria-controls="form-elements">
+        <i class="typcn typcn-film menu-icon"></i>
+        <span class="menu-title">Bahan Baku</span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" data-toggle="collapse" href="#saldoawal" aria-expanded="false" aria-controls="produksi">
+        <i class="typcn typcn-shopping-bag menu-icon"></i>
+        <span class="menu-title">Saldo Awal</span>
+        <i class="menu-arrow"></i>
+      </a>
+      <div class="collapse" id="saldoawal">
+        <ul class="nav flex-column sub-menu">
+          <li class="nav-item"> <a class="nav-link" href="/gudang/read_saldoawalbahan">Bahan Baku</a></li>
+        </ul>
+        <ul class="nav flex-column sub-menu">
+          <li class="nav-item"> <a class="nav-link" href="/gudang/read_saldoawalartikel">Artikel</a></li>
+        </ul>
+        <ul class="nav flex-column sub-menu">
+          <li class="nav-item"> <a class="nav-link" href="/gudang/read_saldoawalsubkon">Produk Subkon</a></li>
+        </ul>
+      </div>
+    </li>
+  </ul>
+</nav>

@@ -26,28 +26,31 @@ def view_gudang(request):
 
     mulai = akhir - timedelta(days=30)
     print(mulai)
-    allspk = models.DetailSPK.objects.filter(
-        NoSPK__Tanggal__range=(mulai, akhir), NoSPK__StatusAktif = True
-    ).order_by("NoSPK__Tanggal")
+    allspk = models.SPK.objects.filter(
+        Tanggal__range=(mulai, akhir), StatusAktif = True
+    ).order_by("Tanggal")
+
+    for i in allspk :
+        if i.StatusDisplay == 0 :
+            detailspk = models.DetailSPK.objects.filter(NoSPK = i.id)
+            i.detailspk = detailspk
+        else :
+            detailspk = models.DetailSPKDisplay.objects.filter(NoSPK = i.id)
+            i.detailspk = detailspk
 
     for a in getretur:
         a.jumlah = a.jumlah * -1
-
     for i in getretur:
         i.tanggal = i.tanggal.strftime("%d-%m-%Y")
-
     for i in getkeluar:
         i.tanggal = i.tanggal.strftime("%d-%m-%Y")
-
     for i in allspk:
-        i.NoSPK.Tanggal = i.NoSPK.Tanggal.strftime("%d-%m-%Y")
+        i.Tanggal = i.Tanggal.strftime("%d-%m-%Y")
 
     if len(getretur) == 0:
         messages.info(request, "Tidak ada barang retur yang belum ACC")
-
     if len(getkeluar) == 0:
         messages.info(request, "Tidak ada barang keluar yang belum ACC")
-
     if len(allspk) == 0:
         messages.warning(request, "Tidak ada SPK selama 30 hari terakhir")
 
@@ -247,13 +250,17 @@ def rekap_gudang(request):
     listnama = []
     satuan = []
     dataproduk = models.Produk.objects.all()
+    datenow = datetime.now()
+    tahun = datenow.year
+    mulai = datetime(year=tahun, month=1, day=1)
+
     for i in dataproduk :
         listproduk.append(i.KodeProduk)
         listnama.append(i.NamaProduk)
         satuan.append(i.unit)
 
         datasjb = (
-        models.DetailSuratJalanPembelian.objects.filter(KodeProduk = i).values(
+        models.DetailSuratJalanPembelian.objects.filter(NoSuratJalan__Tanggal__range = (mulai, datenow),KodeProduk = i).values(
             "KodeProduk",
             "KodeProduk__NamaProduk",
             "KodeProduk__unit",
@@ -261,21 +268,19 @@ def rekap_gudang(request):
         .annotate(kuantitas=Sum("Jumlah"))
         .order_by()
     )
+
         datagudang = (
-                models.TransaksiGudang.objects.filter(KodeProduk = i).values("KodeProduk")
+                models.TransaksiGudang.objects.filter(tanggal__range = (mulai, datenow) ,KodeProduk = i).values("KodeProduk")
                 .annotate(kuantitas=Sum("jumlah"))
                 .order_by()
             )
-        if len(datasjb) == 0 and len(datagudang) == 0:
-            listjumlah.append(0)
-        datenow = datetime.now()
-        tahun = datenow.year
-        mulai = datetime(year=tahun, month=1, day=1)
         date = request.GET.get("date")
+
         if date is not None:
             datasjb = (
                 models.DetailSuratJalanPembelian.objects.filter(
-                    NoSuratJalan__Tanggal__range=(mulai, date)
+                    NoSuratJalan__Tanggal__range=(mulai, date),
+                    KodeProduk = i
                 )
                 .values(
                     "KodeProduk",
@@ -291,11 +296,12 @@ def rekap_gudang(request):
                 .annotate(kuantitas=Sum("jumlah"))
                 .order_by()
             )
+        if len(datasjb) == 0 and len(datagudang) == 0:
+            listjumlah.append(0)
+        # print(datasjb)
+        # print(datagudang)
 
-            if len(datasjb) == 0 and len(datagudang) == 0:
-                listjumlah.append(0)
-
-        if len(datasjb) > 0 :    
+        if len(datasjb) > 0 or len(datagudang) > 0 :    
             for item in datasjb:
                 kode_produk = item["KodeProduk"]
                 try:
@@ -303,16 +309,20 @@ def rekap_gudang(request):
                     item["kuantitas"] -= corresponding_gudang_item["kuantitas"]
                     
                     listjumlah.append(item["kuantitas"])
-
+                    
                     if item["kuantitas"] + corresponding_gudang_item["kuantitas"] < 0:
                         messages.info("Kuantitas gudang menjadi minus")
 
                 except models.TransaksiGudang.DoesNotExist:
-                    pass
+                    listjumlah.append(item["kuantitas"])
+        
+            if len(datasjb) == 0 :
+                for item in datagudang :
+                    listjumlah.append(item["kuantitas"])
+                    print("adaaaa")
 
-    print(listproduk)
+    # print(listproduk)
     print(listjumlah)
-
     for produk,jumlah,nama,unit in zip(listproduk, listjumlah, listnama, satuan) :
         dict_semua.append(
             {
@@ -322,7 +332,6 @@ def rekap_gudang(request):
                 "unit" : unit   
             }
         )
-
 
     return render(
         request,
@@ -671,14 +680,14 @@ def update_produk_gudang(request, id):
         print(request.POST)
         keterangan_produk = request.POST["keterangan_produk"]
         jumlah_minimal = request.POST["jumlah_minimal"]
-        produkobj.keterangan = keterangan_produk
+        produkobj.keteranganGudang = keterangan_produk
         produkobj.Jumlahminimal = jumlah_minimal
         produkobj.save()
         models.transactionlog(
                 user="Gudang",
                 waktu=datetime.now(),
                 jenis="Update",
-                pesan=f"Jumlah Minimal : {produkobj.Jumlahminimal} Keterangan : {produkobj.keterangan}",
+                pesan=f"Jumlah Minimal : {produkobj.Jumlahminimal} Keterangan : {produkobj.keteranganGudang}",
             ).save()
         return redirect("readprodukgudang")
 
@@ -689,24 +698,6 @@ def read_saldoawal(request) :
 
     return render(
         request, "gudang/read_saldoawalbahan.html", {"dataproduk": dataproduk}
-    )
-
-def read_saldoawal2(request) :
-    dataartikel = models.SaldoAwalArtikel.objects.filter(IDLokasi__NamaLokasi = "Gudang").order_by("-Tanggal")
-    for i in dataartikel:
-        i.Tanggal = i.Tanggal.strftime("%d-%m-%Y")
-
-    return render(
-        request, "gudang/read_saldoawalartikel.html", {"dataartikel": dataartikel}
-    )
-
-def read_saldoawal3(request) :
-    datasubkon = models.SaldoAwalSubkon.objects.all().order_by("-Tanggal")
-    for i in datasubkon:
-        i.Tanggal = i.Tanggal.strftime("%d-%m-%Y")
-
-    return render(
-        request, "gudang/read_saldoawalsubkon.html", {"datasubkon": datasubkon}
     )
 
 def addsaldo(request) :
@@ -755,86 +746,6 @@ def addsaldo(request) :
         pemusnahanobj.save()
         return redirect("read_saldoawalbahan")
     
-def addsaldo2(request) :
-    dataartikel = models.Artikel.objects.all()
-    datalokasi = models.Lokasi.objects.all()
-    if request.method == "GET":
-        return render(
-            request,
-            "gudang/addsaldoartikel.html",
-            {"nama_lokasi": datalokasi, "dataartikel": dataartikel},
-        )
-    else:
-        artikel = request.POST["artikel"]
-        lokasi = request.POST["nama_lokasi"]
-        jumlah = request.POST["jumlah"]
-        tanggal = request.POST["tanggal"]
-
-        # Ubah format tanggal menjadi YYYY-MM-DD
-        tanggal_formatted = datetime.strptime(tanggal, "%Y-%m-%d")
-        # Periksa apakah entri sudah ada
-        existing_entry = models.SaldoAwalArtikel.objects.filter(
-            Tanggal__year=tanggal_formatted.year,
-            IDArtikel__KodeArtikel=artikel,
-            IDLokasi__NamaLokasi=lokasi
-        ).exists()
-        if existing_entry:
-            # Jika sudah ada, beri tanggapan atau lakukan tindakan yang sesuai
-            messages.warning(request,('Sudah ada Entry pada tahun',tanggal_formatted.year))
-            return redirect("read_saldoawalartikel")
-        
-        artikelobj = models.Artikel.objects.get(KodeArtikel=artikel)
-        lokasiobj = models.Lokasi.objects.get(NamaLokasi=lokasi)
-        lokasi = str(lokasiobj.IDLokasi)
-        pemusnahanobj = models.SaldoAwalArtikel(
-            Tanggal=tanggal, Jumlah=jumlah, IDArtikel=artikelobj, IDLokasi_id=lokasi
-        )
-        models.transactionlog(
-            user="Gudang",
-            waktu=datetime.now(),
-            jenis="Create",
-            pesan=f"Kode Artikel : {artikel} Lokasi : {lokasi}",
-        ).save()
-        pemusnahanobj.save()
-        return redirect("read_saldoawalartikel")
-    
-def addsaldo3(request) :
-    datasubkon = models.ProdukSubkon.objects.all()
-    if request.method == "GET":
-        return render(
-            request,
-            "gudang/addsaldosubkon.html",
-            { "datasubkon": datasubkon},
-        )
-    else:
-        kodeproduk = request.POST["produk"]
-        jumlah = request.POST["jumlah"]
-        tanggal = request.POST["tanggal"]
-
-        # Ubah format tanggal menjadi YYYY-MM-DD
-        tanggal_formatted = datetime.strptime(tanggal, "%Y-%m-%d")
-        # Periksa apakah entri sudah ada
-        existing_entry = models.SaldoAwalSubkon.objects.filter(
-            Tanggal__year=tanggal_formatted.year,
-            IDProdukSubkon__NamaProduk=kodeproduk,
-        ).exists()
-        if existing_entry:
-            # Jika sudah ada, beri tanggapan atau lakukan tindakan yang sesuai
-            messages.warning(request,('Sudah ada Entry pada tahun',tanggal_formatted.year))
-            return redirect("read_saldoawalsubkon")
-        
-        produkobj = models.ProdukSubkon.objects.get(NamaProduk=kodeproduk)
-        pemusnahanobj = models.SaldoAwalSubkon(
-            Tanggal=tanggal, Jumlah=jumlah, IDProdukSubkon=produkobj)
-        models.transactionlog(
-            user="Gudang",
-            waktu=datetime.now(),
-            jenis="Create",
-            pesan=f"Kode Barang : {kodeproduk}",
-        ).save()
-        pemusnahanobj.save()
-        return redirect("read_saldoawalsubkon")
-    
 def delete_saldo(request, id):
     dataobj = models.SaldoAwalBahanBaku.objects.get(IDSaldoAwalBahanBaku=id)
     models.transactionlog(
@@ -846,27 +757,6 @@ def delete_saldo(request, id):
     dataobj.delete()
     return redirect("read_saldoawalbahan")
 
-def delete_saldo2(request, id):
-    dataobj = models.SaldoAwalArtikel.objects.get(IDSaldoAwalBahanBaku=id)
-    models.transactionlog(
-                user="Gudang",
-                waktu=datetime.now(),
-                jenis="Delete",
-                pesan=f"Kode Artikel : {dataobj.IDArtikel} Lokasi : {dataobj.IDLokasi}",
-            ).save()
-    dataobj.delete()
-    return redirect("read_saldoawalartikel")
-
-def delete_saldo3(request, id):
-    dataobj = models.SaldoAwalSubkon.objects.get(IDSaldoAwalProdukSubkon=id)
-    models.transactionlog(
-            user="Gudang",
-            waktu=datetime.now(),
-            jenis="Delete",
-            pesan=f"Kode Barang : {dataobj.IDProdukSubkon}",
-        ).save()
-    dataobj.delete()
-    return redirect("read_saldoawalsubkon")
 
 def update_saldo(request,id) :    
     databarang = models.Produk.objects.all()
@@ -890,9 +780,6 @@ def update_saldo(request,id) :
         lokasiobj = models.Lokasi.objects.get(NamaLokasi=lokasi)
         lokasi = str(lokasiobj.IDLokasi)
 
-
-
-
         dataobj.Tanggal = tanggal
         dataobj.Jumlah = jumlah
         dataobj.IDBahanBaku = produkobj
@@ -907,67 +794,4 @@ def update_saldo(request,id) :
         dataobj.save()
         return redirect("read_saldoawalbahan")
     
-def update_saldo2(request,id) :
-    dataartikel = models.Artikel.objects.all()
-    dataobj = models.SaldoAwalArtikel.objects.get(IDSaldoAwalBahanBaku=id)
-    dataobj.Tanggal = dataobj.Tanggal.strftime("%Y-%m-%d")
-    lokasiobj = models.Lokasi.objects.all()
-    if request.method == "GET":
-
-        return render(
-            request,
-            "gudang/update_saldoartikel.html",
-            {"data": dataobj, "nama_lokasi": lokasiobj, "dataartikel": dataartikel},
-        )
-
-    else:
-        artikel = request.POST["artikel"]
-        lokasi = request.POST["nama_lokasi"]
-        jumlah = request.POST["jumlah"]
-        tanggal = request.POST["tanggal"]
-
-        artikelobj = models.Artikel.objects.get(KodeArtikel=artikel)
-        lokasiobj = models.Lokasi.objects.get(NamaLokasi=lokasi)
-        lokasi = str(lokasiobj.IDLokasi)
-
-        dataobj.Tanggal = tanggal
-        dataobj.Jumlah = jumlah
-        dataobj.IDArtikel = artikelobj
-        dataobj.IDLokasi_id = lokasi
-        models.transactionlog(
-            user="Gudang",
-            waktu=datetime.now(),
-            jenis="Update",
-            pesan=f"Kode Artikel Lama : {dataobj.IDArtikel} Jumlah Lama : {dataobj.Jumlah} Kode Artikel Baru : {artikel} Jumlah Baru : {jumlah}",
-        ).save()
-        dataobj.save()
-        return redirect("read_saldoawalartikel")
     
-def update_saldo3(request,id) :
-    dataobj = models.SaldoAwalSubkon.objects.get(IDSaldoAwalProdukSubkon=id)
-    dataobj.Tanggal = dataobj.Tanggal.strftime("%Y-%m-%d")
-    datasubkon = models.ProdukSubkon.objects.all()
-    if request.method == "GET":
-        return render(
-            request,
-            "gudang/update_saldosubkon.html",
-            {"data": dataobj,"datasubkon": datasubkon },
-        )
-
-    else:
-        kodeproduk = request.POST["produk"]
-        jumlah = request.POST["jumlah"]
-        tanggal = request.POST["tanggal"]
-        produkobj = models.ProdukSubkon.objects.get(NamaProduk=kodeproduk)
-
-        dataobj.Tanggal = tanggal
-        dataobj.Jumlah = jumlah
-        dataobj.IDProdukSubkon = produkobj
-        models.transactionlog(
-            user="Gudang",
-            waktu=datetime.now(),
-            jenis="Update",
-            pesan=f"Kode Barang Lama : {dataobj.IDProdukSubkon} Jumlah Lama : {dataobj.Jumlah} Kode Barang Baru : {kodeproduk} Jumlah Baru : {jumlah}",
-        ).save()
-        dataobj.save()
-        return redirect("read_saldoawalsubkon")

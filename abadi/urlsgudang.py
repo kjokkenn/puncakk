@@ -34,15 +34,8 @@ urlpatterns = [
         name="update_produk_gudang",
     ),
     path("read_saldoawalbahan", viewsgudang.read_saldoawal, name="read_saldoawalbahan"),
-    path("read_saldoawalartikel", viewsgudang.read_saldoawal2, name="read_saldoawalartikel"),
-    path("read_saldoawalsubkon", viewsgudang.read_saldoawal3, name="read_saldoawalsubkon"),
     path("addsaldobahan", viewsgudang.addsaldo, name="addsaldobahan"),
-    path("addsaldoartikel", viewsgudang.addsaldo2, name="addsaldoartikel"),
-    path("addsaldosubkon", viewsgudang.addsaldo3, name="addsaldosubkon"),
     path("deletesaldobahan/<str:id>", viewsgudang.delete_saldo, name="deletesaldobahan"),
-    path("deletesaldoartikel/<str:id>", viewsgudang.delete_saldo2, name="deletesaldoartikel"),
-    path("deletesaldosubkon/<str:id>", viewsgudang.delete_saldo3, name="deletesaldosubkon"),
     path("update_saldobahan/<str:id>", viewsgudang.update_saldo, name="updatesaldobahan"),
-    path("update_saldoartikel/<str:id>", viewsgudang.update_saldo2, name="updatesaldoartikel"),
-    path("update_saldosubkon/<str:id>", viewsgudang.update_saldo3, name="updatesaldosubkon"),
+
 ]

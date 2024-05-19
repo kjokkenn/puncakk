@@ -52,22 +52,10 @@
       </a>
     </li>
     <li class="nav-item">
-      <a class="nav-link" data-toggle="collapse" href="#saldoawal" aria-expanded="false" aria-controls="produksi">
-        <i class="typcn typcn-shopping-bag menu-icon"></i>
-        <span class="menu-title">Saldo Awal</span>
-        <i class="menu-arrow"></i>
+      <a class="nav-link" href="{% url 'read_saldoawalbahan' %}" aria-expanded="false" aria-controls="form-elements">
+        <i class="typcn typcn-film menu-icon"></i>
+        <span class="menu-title">Saldo Awal Bahan Baku</span>
       </a>
-      <div class="collapse" id="saldoawal">
-        <ul class="nav flex-column sub-menu">
-          <li class="nav-item"> <a class="nav-link" href="/gudang/read_saldoawalbahan">Bahan Baku</a></li>
-        </ul>
-        <ul class="nav flex-column sub-menu">
-          <li class="nav-item"> <a class="nav-link" href="/gudang/read_saldoawalartikel">Artikel</a></li>
-        </ul>
-        <ul class="nav flex-column sub-menu">
-          <li class="nav-item"> <a class="nav-link" href="/gudang/read_saldoawalsubkon">Produk Subkon</a></li>
-        </ul>
-      </div>
     </li>
   </ul>
 </nav>

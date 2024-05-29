@@ -1,0 +1,200 @@
+{% extends "ppic/base.html" %}
+{% load static %}
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+{% endblock stylesheets %}
+
+<!-- Page content  -->
+{% block content %}
+<div class="col-12 grid-margin">
+  <div class="card">
+    <div class="card-body">
+      <h4 class="card-title">Detail Confirmation Order</h4>
+      <div class="template-demo">
+        <a href="/produksi/viewspk">
+          <button type="button" class="btn btn-light btn-icon-text">
+            <i class="typcn typcn-chevron-left btn-icon-prepend"></i>
+            Kembali
+          </button>
+        </a>
+      </div>
+      <br>
+      <form class="form-sample" action="" method="post">
+        {% csrf_token %}
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group row">
+              <label class="col-sm-3 col-form-label">Tanggal</label>
+              <div class="col-sm-9">
+                <input type="date" class="form-control" name="tanggal" value="{{dataco.tanggal}}" required />
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group row">
+              <label class="col-sm-3 col-form-label">Nomor CO</label>
+              <div class="col-sm-9">
+                <input type="text" class="form-control" name="nomorco" value="{{dataco.NoCO}}" required />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group row">
+              <label class="col-sm-3 col-form-label">Kepada</label>
+              <div class="col-sm-9">
+                <input type="text" class="form-control" name="kepada" value="{{dataco.kepada}}" required />
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group row">
+              <label class="col-sm-3 col-form-label">Perihal</label>
+              <div class="col-sm-9">
+                <input type="text" class="form-control" name="perihal" value="{{dataco.perihal}}" required />
+              </div>
+            </div>
+          </div>
+        </div>
+        <h4 class="card-title">Detail Artikel</h4>
+        <div id="artikels">
+          {% for i in dataco.detailcopo %}
+          <div class="row" id="artikel_{{forloop.counter}}">
+            <input type="text" hidden name="id[]" value="{{i.id}}">
+            <div class="col-md-3 tes">
+              <div class="form-group">
+                <label for="artikel_{{forloop.counter}}">Artikel {{forloop.counter}}:</label>
+                <input type="text" class="form-control" name="artikel[]" value="{{i.Artikel}}" required />
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="form-group">
+                <label for="deskripsi_{{forloop.counter}}">Deskripsi</label>
+                <input type="text" class="form-control" name="deskripsi[]" value="{{i.deskripsi}}" required />
+              </div>
+            </div>
+            <div class="col-md-2">
+              <div class="form-group">
+                <label for="kuantitas_{{forloop.counter}}">Kuantitas</label>
+                <input type="text" class="form-control" name="kuantitas[]" value="{{i.kuantitas}}" required />
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="form-group">
+                <label for="harga_{{forloop.counter}}">Harga (Rp)</label>
+                <input type="text" class="form-control" name="harga[]" value="{{i.Harga}}" required />
+              </div>
+            </div>
+            <div class="col-md-1">
+              <br>
+              <label for="hapus{{forloop.counter}}"></label>
+              <button type="button" class="btn btn-danger" onclick="deleteRow(this)"><i
+                  class="typcn typcn-trash"></i></button>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        <div class="row">
+          <div class="col-auto mr-auto">
+            <button type="button" class="btn btn-success" onclick="addProduct()">
+              <i class="typcn typcn-plus btn-icon-prepend"></i>
+              Tambahkan Artikel
+            </button>
+          </div>
+          <div class="col-auto"><button type="submit" class="btn btn-primary mr-2">Submit</button></div>
+        </div>
+        <br><br>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% block javascripts %}
+<!-- ... Bagian lain dari template Anda ... -->
+
+<script>
+  function addProduct() {
+    let productCounter = document.querySelectorAll('.tes').length + 1;
+    const productRow = document.createElement('div');
+    productRow.className = "row";
+    productRow.id = `artikel_${productCounter}`;
+    productRow.innerHTML = `
+    <input type='text' name=id[] hidden>
+      <div class="col-md-3 tes">
+        <div class="form-group">
+          <label for="artikel_${productCounter}">Artikel ${productCounter}:</label>
+          <input type="text" class="form-control" name="artikel[]" placeholder="Artikel" required>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="form-group">
+          <label for="deskripsi_${productCounter}">Deskripsi</label>
+          <input type="text" class="form-control" name="deskripsi[]" placeholder="Deskripsi" required>
+        </div>
+      </div>
+      <div class="col-md-2">
+        <div class="form-group">
+          <label for="kuantitas_${productCounter}">Kuantitas</label>
+          <input type="number" class="form-control" min="0" name="kuantitas[]" placeholder="Kuantitas" required>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="form-group">
+          <label for="harga_${productCounter}">Harga</label>
+          <input type="number" class="form-control" min="0" name="harga[]" placeholder="Harga" required>
+        </div>
+      </div>
+      <div class="col-md-1">
+        <br>
+        <label for="hapus${productCounter}"></label>
+        <button type="button" class="btn btn-danger" onclick="deleteRow(this)"><i class="typcn typcn-trash"></i></button>
+      </div>`;
+    document.getElementById('artikels').appendChild(productRow);
+  }
+
+  function deleteRow(button) {
+    let idInput = button.parentElement.parentElement.querySelector('input[name="id[]"]');
+    let id = idInput ? idInput.value : null;
+
+    if (id) {
+      // Tampilkan modal konfirmasi
+      const modal = `
+        <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Konfirmasi Penghapusan</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                Apakah Anda yakin ingin menghapus data ini?
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-danger" onclick="confirmDelete(${id})">Hapus</button>
+              </div>
+            </div>
+          </div>
+        </div>`;
+      document.body.insertAdjacentHTML('beforeend', modal);
+      $('#deleteModal').modal('show');
+    } else {
+      // Jika tidak ada id, hapus baris langsung
+      button.closest('.row').remove();
+    }
+  }
+
+  function confirmDelete(id) {
+    window.location.href = `/ppic/deletedetailco/${id}`;
+  }
+
+</script>
+
+<!-- ... Bagian lain dari template Anda ... -->
+
+{% endblock javascripts %}
+{% endblock content %}

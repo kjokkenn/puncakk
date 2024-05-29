@@ -1,0 +1,7 @@
+<select class="form-control" name="detail_spkdisplay[]">
+    <option value="" disabled selected>Masukkan Nomor SPK</option>
+
+    {% for i in detailspk %}
+    <option value="{{i.IDDetailSPK}}">{{i.NoSPK}}</option>
+    {% endfor %}
+</select>

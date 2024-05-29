@@ -1,0 +1,71 @@
+{% extends "ppic/base.html" %}
+{% load static %}
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+{% endblock stylesheets %}
+
+
+
+<!-- Page content  -->
+{% block content %}
+<div class="row">
+    <div class="col-lg-12 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">Confirmation Order</h4>
+
+
+
+                <div class="table-responsive pt-3">
+
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <td>No CO/No PO</td>
+                                <td>Tanggal Terbit</td>
+                                <td>Artikel</td>
+                                <td>Sisa Order</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for i in data %}
+                            <tr>
+                                <td>{{i.NoCO}}</td>
+                                <td>{{i.tanggal}}</td>
+                                <td>
+                                    <ul>
+
+                                        {% for j in i.detailco %}
+                                        <li>
+                                            {{j.Artikel}}
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+                                </td>
+                                <td>
+                                    <ul>
+                                        {% for j in i.detailco %}
+                                        <li>
+                                            {{j.kuantitas}}
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+                                </td>
+
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% block javascripts %}
+
+{% endblock javascripts %}
+{% endblock content %}

@@ -1,0 +1,6 @@
+<select class="form-control" name="versi" required onchange="loadPenyusunOptions(this)" id="kodeversiartikel_1">
+    <option disabled selected>Pilih Versi</option>
+    {% for i in penyusun %}
+    <option value="{{i}}">{{i}}</option>
+    {% endfor %}
+</select>

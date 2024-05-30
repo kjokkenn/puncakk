@@ -1,0 +1,152 @@
+{% extends "gudang/base.html" %}
+{% load static %}
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+{% endblock stylesheets %}
+
+
+
+<!-- Page content  -->
+{% block content %}
+<div class="col-12 grid-margin">
+  <div class="card">
+    <div class="card-body">
+      <form class="form-sample" action="" method="post">
+        <h4 class="card-title">Form Surat Jalan Pembelian</h4>
+        <br>
+        {% csrf_token %}
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group row">
+              <label class="col-sm-3 col-form-label">No Surat jalan</label>
+              <div class="col-sm-9">
+                <input type="text" class="form-control" name="nosuratjalan" placeholder="Masukkan Nomor Surat jalan"
+                  list="suratjalan" value="{{datasjp.NoSuratJalan}}" />
+                <datalist id="suratjalan">
+                  {% for i in detailsj %}
+                  <option value="{{i.NoSuratJalan}}">{{i.Tanggal}}</option>
+                  {% endfor %}
+                </datalist>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group row">
+              <label class="col-sm-3 col-form-label">Tanggal</label>
+              <div class="col-sm-9">
+                <input type="date" class="form-control" name="tanggal" required value="{{tanggal}}" />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group row">
+              <label class="col-sm-3 col-form-label">Supplier</label>
+              <div class="col-sm-9">
+                <input type="text" class="form-control" name="supplier" placeholder="Masukan Nama Supplier"
+                  value="{{datasjp.supplier}}" />
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group row">
+              <label class="col-sm-3 col-form-label">Nomor PO</label>
+              <div class="col-sm-9">
+                <input type="text" class="form-control" name="nomorpo" placeholder="Masukkan Nomor PO"
+                  value="{{datasjp.PO}}" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <h4 class="card-title">Form Data Barang</h4>
+        <div id="products"><!-- Div ini ditambahkan untuk menampung produk yang ditambahkan dinamis -->
+          <div class="row">
+            <div class="col-md-3">
+              <div class="form-group ">
+                <label class="">Kode Produk</label>
+                <div class="">
+                  <input type="text" class="form-control" placeholder="Masukkan Nama Bahan Baku"
+                    aria-label="Masukkan Nama bahanbaku" name="kodeproduk" list="listproduk" required
+                    value="{{detailsjp.KodeProduk.KodeProduk}}" onchange="loadproduk(this)" id="artikel">
+                  <datalist id="listproduk">
+                    {% for i in getproduk %}
+                    <option value="{{i.KodeProduk}}">{{i.KodeProduk}} - {{i.NamaProduk}}</option>
+                    {% endfor %}
+                  </datalist>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-md-4">
+              <div class="form-group ">
+                <label>Nama Produk</label>
+                <div>
+                  <input id="namabahanbaku" type="text" value="{{detailsjp.KodeProduk.NamaProduk}}" class="form-control"
+                    required disabled>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-md-2">
+              <div class="form-group ">
+                <label>Unit</label>
+                <div>
+                  <input id="unitbahanbaku" type="text" value="{{detailsjp.KodeProduk.unit}}" class="form-control"
+                    required disabled>
+                </div>
+              </div>
+
+            </div>
+            <div class="col-md-3">
+              <div class="form-group ">
+                <label>Jumlah</label>
+                <div>
+                  <input min="0" step="any" type="number" value="{{detailsjp.Jumlah}}" class="form-control"
+                    name="jumlah" required>
+                </div>
+              </div>
+            </div>
+
+
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary ml-5">Submit</button>
+      </form>
+    </div>
+  </div>
+</div>
+<script>
+  function loadproduk(selectElement) {
+    var artikel = selectElement.value;
+    var productCounter = selectElement.id.split('_')[1];
+    var namabahanbaku = document.getElementById('namabahanbaku');
+    var unitbahanbaku = document.getElementById('unitbahanbaku');
+    var dataproduk = document.getElementById('artikel');
+
+    var url = "{% url 'load_produk' %}";
+
+    // Menghapus opsi sebelumnya jika ada
+
+    // Memuat opsi baru berdasarkan nomor SPK yang dipilih
+    $.ajax({
+      url: url,
+      data: {
+        'artikel': artikel
+      },
+      dataType: 'html',
+      success: function (data) {
+        var jsonData = JSON.parse(data);
+
+        console.log(typeof jsonData)
+        namabahanbaku.value = jsonData.NamaProduk
+        unitbahanbaku.value = jsonData.unit
+
+      }
+    });
+  }
+</script>
+
+{% endblock content %}

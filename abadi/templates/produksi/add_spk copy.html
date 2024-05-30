@@ -1,0 +1,179 @@
+{% extends "produksi/base.html" %}
+{% load static %}
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+{% endblock stylesheets %}
+
+<!-- Page content  -->
+{% block content %}
+<div class="col-12 grid-margin">
+  <div class="card">
+    <div class="card-body">
+      <h4 class="card-title">Form Input SPK</h4>
+      <div class="template-demo">
+        <a href="/produksi/viewspk">
+          <button type="button" class="btn btn-light btn-icon-text">
+            <i class="typcn typcn-chevron-left btn-icon-prepend"></i>
+            Kembali
+          </button>
+        </a>
+      </div>
+      <br>
+      <form class="form-sample" action="" method="post">
+        {% csrf_token %}
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group row">
+              <label class="col-sm-3 col-form-label">Tanggal</label>
+              <div class="col-sm-9">
+                <input type="date" class="form-control" name="tanggal" />
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group row">
+              <label class="col-sm-3 col-form-label">Nomor SPK</label>
+              <div class="col-sm-9">
+                <input type="text" class="form-control" name="nomor_spk" />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group row">
+              <label class="col-sm-3 col-form-label">Keterangan</label>
+              <div class="col-sm-9">
+                <textarea class="form-control" name="keterangan" rows="3"></textarea>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group row">
+              <label for="" class="col-sm-3 col-form-label ">Tipe SPK</label>
+              <div class="col-sm-9">
+                <select name="" id="jenisspk" class="form-control" onchange="toggleDiv()" name="jenisspk">
+                  <option value="spkartikel" selected>SPK Artikel</option>
+                  <option value="spkdisplay">SPK Display</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+        <h4 class="card-title">Detail SPK</h4>
+        <div id="spkartikel">
+          <div id="artikels">
+            <div class="row" id="artikel_1">
+              <div class="col-md-5">
+                <div class="form-group">
+                  <label for="artikel_1">Artikel 1:</label>
+                  <input required type="text" class="form-control artikel" name="artikel[]" list="listartikel">
+                  <datalist id="listartikel">
+                    {% for item in data %}
+                    <option value="{{ item.KodeArtikel }}">{{ item.KodeArtikel }}</option>
+                    {% endfor %}
+                  </datalist>
+                </div>
+              </div>
+              <div class="col-md-5">
+                <div class="form-group">
+                  <label for="quantity_1">Jumlah</label>
+                  <input type="number" class="form-control quantity" name="quantity[]" placeholder="Quantity">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="spkdisplay">
+          <div id=" displays">
+            <div class="row" id="artikel_1">
+              <div class="col-md-5">
+                <div class="form-group">
+                  <label for="artikel_1">Display 1:</label>
+                  <input required type="text" class="form-control artikel" name="artikel[]" list="listdisplay">
+                  <datalist id="listdisplay">
+                    {% for item in datadisplay %}
+                    <option value="{{ item.KodeDisplay }}">{{ item.KodeDisplay }}</option>
+                    {% endfor %}
+                  </datalist>
+                </div>
+              </div>
+              <div class="col-md-5">
+                <div class="form-group">
+                  <label for="quantity_1">Jumlah</label>
+                  <input type="number" class="form-control quantity" name="quantity[]" placeholder="Quantity">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <br><br>
+        <div class="row">
+          <div class="col-auto mr-auto">
+            <button type="button" class="btn btn-success" onclick="addProduct()">
+              <i class="typcn typcn-plus btn-icon-prepend"></i>
+              Tambahkan Artikel
+            </button>
+          </div>
+          <div class="col-auto"><button type="submit" class="btn btn-primary mr-2">Submit</button></div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% block javascripts %}
+<script>
+  function addProduct() {
+    let productCounter = document.querySelectorAll('.artikel').length + 1;
+    console.log(productCounter)
+    const productRow = document.createElement('div');
+    productRow.className = "row";
+    productRow.id = `artikel_${productCounter}`;
+    productRow.innerHTML = `<div class="col-md-5">
+                                    <div class="form-group">
+                                        <label >Artikel ${productCounter}:</label>
+                                        <input required type="text" class="form-control artikel" name="artikel[]" list="listartikel" >
+                                        <datalist  id="listartikel">
+                                          {% for item in data %}
+                                          <option value="{{ item.KodeArtikel }}">{{ item.KodeArtikel }}</option>
+                                          {% endfor %}
+                                        </datalist>
+                                    </div>
+                                </div>
+                                <div class="col-md-5">
+                                    <div class="form-group">
+                                        <label >Jumlah</label>
+                                        <input type="number" class="form-control quantity" name="quantity[]" placeholder="Quantity">
+                                    </div>
+                                </div>
+                                <div class="col-md-1">
+                                    <br>
+                                    <label ></label>
+                                    <button type="button" class="btn btn-danger" onclick="deleteRow(this)"><i class="typcn typcn typcn-trash"></i></button>
+                                </div>`;
+
+    document.getElementById('artikels').appendChild(productRow);
+  }
+
+  function deleteRow(button) {
+    button.closest('.row').remove();
+  }
+  function toggleDiv() {
+    var select = document.getElementById('jenisspk');
+    var value = select.value;
+    console.log(value)
+    if (value === 'spkartikel') {
+      document.getElementById('artikels').innerHTML = '';
+      addProduct()
+      console.log(document.getElementById('artikels').innerHTML)
+      document.getElementById('displays').innerText = '';
+    } else if (value === 'spkdisplay') {
+      document.getElementById('spkartikel').style.display = 'none';
+      document.getElementById('spkdisplay').style.display = 'block';
+    }
+  }
+</script>
+{% endblock javascripts %}
+{% endblock content %}
